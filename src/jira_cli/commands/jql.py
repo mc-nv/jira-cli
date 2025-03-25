@@ -22,9 +22,9 @@ def get_predefined_query(flag):
         'in_progress': 'status = "In Progress" ORDER BY priority DESC',
         'overdue': 'due < now() ORDER BY priority DESC',
         'no_assignee': 'assignee is EMPTY ORDER BY priority DESC',
-        'reported-by-me': 'reporter = currentUser() ORDER BY priority DESC',
-        'blocked-by-me': 'issue in linkedIssues("is blocked by") AND assignee = currentUser() ORDER BY priority DESC',
-        'blocking-me': 'issue in linkedIssues("blocks") AND assignee = currentUser() ORDER BY priority DESC',
+        'reported_by_me': 'reporter = currentUser() ORDER BY priority DESC',
+        'blocked_by_me': 'issue in linkedIssues("is blocked by") AND assignee = currentUser() ORDER BY priority DESC',
+        'blocking_me': 'issue in linkedIssues("blocks") AND assignee = currentUser() ORDER BY priority DESC',
         'my_sprint': 'assignee in (currentUser()) and sprint in openSprints()',
         'my_sprint_status': 'assignee in (currentUser()) and sprint in openSprints() ORDER BY status DESC'
     }
