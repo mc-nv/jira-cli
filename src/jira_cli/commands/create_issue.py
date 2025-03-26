@@ -51,7 +51,7 @@ def create_issue( **kwargs):
 
         issue_fields["project"] = {"key": kwargs.get("project")}
         issue_fields["summary"] = kwargs.get("summary")
-        issue_fields["description"] = kwargs.get("description")
+        issue_fields["description"] = kwargs.get("description").replace("\\n", "\n").replace("\\t", "\t")
         issue_fields["assignee"] = {"name": kwargs.get("assignee")}
         issue_fields["customfield_12714"] = kwargs.get("acceptance_criteria")
         issue_fields["issuetype"] = {"name": kwargs.get("issuetype")}
