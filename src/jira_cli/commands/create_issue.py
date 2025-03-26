@@ -3,7 +3,7 @@ import os
 from ..server import get_jira_client
 from datetime import datetime
 from tabulate import tabulate
-
+import json
 current_date = datetime.now()
 date_formatted = current_date.strftime("%y.%m")
 
@@ -21,6 +21,7 @@ date_formatted = current_date.strftime("%y.%m")
 @click.option("--fix-version", "-FV", help="Fix version(s) (comma-separated)")
 @click.option("--story-points", "-SP", help="Story points (default: 1)", default=1.0)
 @click.option("--update", "-U", help="Update existing issue")
+@click.option("--add-to-current-sprint", "-ATS", help="Add to current sprint (default: current sprint)",is_flag=True, default=False)
 
 def create_issue( **kwargs):
     """Create a new issue in the specified project."""
@@ -59,13 +60,25 @@ def create_issue( **kwargs):
         issue_fields["summary"] = kwargs.get("summary")
         issue_fields["description"] = kwargs.get("description").replace("\\n", "\n").replace("\\t", "\t")
         issue_fields["assignee"] = {"name": kwargs.get("assignee")}
-        issue_fields["customfield_12714"] = kwargs.get("acceptance_criteria")
+        # issue_fields["customfield_12714"] = kwargs.get("acceptance_criteria")
         issue_fields["issuetype"] = {"name": kwargs.get("issuetype")}
         issue_fields["timetracking"] = {"originalEstimate": kwargs.get("estimate")}
-        issue_fields["customfield_10002"] = kwargs.get("story_points")
+        # issue_fields["customfield_10002"] = kwargs.get("story_points")
         if kwargs.get("fix_version"):
             issue_fields["fixVersions"] = [{"name": kwargs.get("fix_version")}]
-
+        if kwargs.get("add_to_current_sprint"):
+            try:
+                sprints = jira.get_all_sprints_from_board(os.getenv("JIRA_PROJECT_BOARD_ID"), state="active", start=0, limit=50)
+                if not sprints or not sprints.get('values'):
+                    click.echo(click.style("Warning: No active sprints found", fg="yellow"))
+                else:
+                    current_sprint = sprints['values'][0]
+                    sprint_id = current_sprint.get('id')
+                    issue_fields["customfield_10004"] = sprint_id
+                    if kwargs.get("debug"):
+                        click.echo(click.style(f"\n[DEBUG] Added to sprint: {current_sprint.get('name')} (ID: {sprint_id})", fg="yellow"))
+            except Exception as e:
+                click.echo(click.style(f"Warning: Could not add to sprint: {str(e)}", fg="yellow"))
         
         if kwargs.get("priority"):
             if kwargs.get("priority") == "S":
@@ -107,6 +120,15 @@ def create_issue( **kwargs):
                 "outwardIssue": {"key": issue_key}
             }
             jira.create_issue_link(link_data)
+
+        if kwargs.get("debug"):
+            table_data = [[key, value] for key, value in issue_fields.items()]        
+            click.echo(click.style("\n[DEBUG] Debug mode enabled. Issue fields:", fg="yellow"))
+            click.echo(tabulate(table_data, headers=["Key", "Value"], tablefmt="simple"))
+            click.echo()  # Add a blank line for readability
+            click.echo(click.style("\n[DEBUG] Print JSON. Issue fields:", fg="yellow"))
+            click.echo(json.dumps(issue_fields, indent=4))
+            click.echo()  # Add a blank line for readability
 
         click.echo(f"Created issue: {issue_key}")
         click.echo(click.style(f"Created URL: {jira.url}/browse/{issue_key}", fg="blue"))
