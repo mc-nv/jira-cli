@@ -30,24 +30,24 @@ def create_issue( **kwargs):
         # Get required fields with prompts if not provided
         lambda: kwargs.keys()
         if "project" not in kwargs or kwargs.get("project") is None:
-            kwargs["project"] = click.prompt("Enter project key", type=str)
+            kwargs["project"] = click.prompt("-P,--project: Enter project key", type=str)
         if "summary" not in kwargs or kwargs.get("summary") is None:
-            kwargs["summary"] = click.prompt("Enter issue summary", type=str)
+            kwargs["summary"] = click.prompt("-S,--summary: Enter issue summary", type=str)
         if "description" not in kwargs or kwargs.get("description") is None:
             kwargs["description"] = click.edit(
                 text="h3. Input",
                 require_save=True
             ).strip()
         if "assignee" not in kwargs or kwargs.get("assignee") is None:
-            kwargs["assignee"] = click.prompt("Enter issue assignee", type=str)
+            kwargs["assignee"] = click.prompt("-A,--assignee: Enter issue assignee", type=str)
         if "acceptance_criteria" not in kwargs or kwargs.get("acceptance_criteria") is None:
-            kwargs["acceptance_criteria"] = click.prompt("Enter acceptance criteria (one per line)", type=str)
+            kwargs["acceptance_criteria"] = click.prompt("-AC,--acceptance-criteria: Enter acceptance criteria (one per line)", type=str)
         if "estimate" not in kwargs or kwargs.get("estimate") is None:
-            kwargs["estimate"] = click.prompt("Enter remaining estimate in hours", type=str)
+            kwargs["estimate"] = click.prompt("-E,--estimate: Enter remaining estimate in hours", type=str)
         if "story_points" not in kwargs or kwargs.get("story_points") is None:
-            kwargs["story_points"] = click.prompt("Enter story points", type=float)
+            kwargs["story_points"] = click.prompt("-SP,--story-points: Enter story points", type=float)
         if "update" in kwargs and kwargs.get("update") is None:
-            kwargs["update"] = click.prompt("Enter issue key to update", type=str)
+            kwargs["update"] = click.prompt("-U,--update: Enter issue key to update", type=str)
 
         issue_fields["project"] = {"key": kwargs.get("project")}
         issue_fields["summary"] = kwargs.get("summary")
