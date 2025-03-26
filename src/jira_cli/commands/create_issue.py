@@ -2,13 +2,14 @@ import click
 import os
 from ..server import get_jira_client
 from datetime import datetime
+from tabulate import tabulate
 
 current_date = datetime.now()
 date_formatted = current_date.strftime("%y.%m")
 
 @click.command()
-@click.option("--project", "-P", required=True, help="Jira project key", default=lambda: os.getenv("JIRA_PROJECT"))
-@click.option("--summary", "-S", required=True, help="Issue summary")
+@click.option("--project", "-P", help="Jira project key", default=lambda: os.getenv("JIRA_PROJECT"))
+@click.option("--summary", "-S", help="Issue summary" )
 @click.option("--description", "-D", help="Issue description")
 @click.option("--assignee", "-A", help="Issue assignee", default=lambda: os.getenv("JIRA_USER"))
 @click.option("--issuetype", "-T", help="Issue type", default="Task")
@@ -17,7 +18,7 @@ date_formatted = current_date.strftime("%y.%m")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode")
 @click.option("--priority", help="Priority (default: P2)", default="P2", type=click.Choice(["S","P0", "P1", "P2"]))
 @click.option("--estimate", "-E", help="Remaining estimate in hours (default: 2h)", default="2h")
-@click.option("--fix-version", "-FV", help="Fix version(s) (comma-separated)", default=date_formatted)
+@click.option("--fix-version", "-FV", help="Fix version(s) (comma-separated)")
 @click.option("--story-points", "-SP", help="Story points (default: 1)", default=1.0)
 @click.option("--update", "-U", help="Update existing issue")
 
@@ -25,29 +26,34 @@ def create_issue( **kwargs):
     """Create a new issue in the specified project."""
     jira = get_jira_client()
     issue_fields = {}
-    print("kwargs: ", kwargs)
+    if kwargs.get("debug"):
+        # Prepare table data
+        table_data = [[key, value] for key, value in kwargs.items()]
+        click.echo(click.style(f"\n[DEBUG] JIRA_URL: {jira.url}", fg="yellow"))
+        click.echo(click.style("\n[DEBUG] Debug mode enabled. Issue fields:", fg="yellow"))
+        click.echo(tabulate(table_data, headers=["Key", "Value"], tablefmt="simple"))
+        click.echo()  # Add a blank line for readability
+
     try:
         # Get required fields with prompts if not provided
-        lambda: kwargs.keys()
-        if "project" not in kwargs or kwargs.get("project") is None:
-            kwargs["project"] = click.prompt("-P,--project: Enter project key", type=str)
-        if "summary" not in kwargs or kwargs.get("summary") is None:
-            kwargs["summary"] = click.prompt("-S,--summary: Enter issue summary", type=str)
-        if "description" not in kwargs or kwargs.get("description") is None:
+        if not kwargs.get("project"):
+            kwargs["project"] = click.prompt("--project, -P: Enter project key", type=str)
+
+        if not kwargs.get("summary"):
+            kwargs["summary"] = click.prompt("--summary, -S: Enter issue summary", type=str)
+        if not kwargs.get("description"):
             kwargs["description"] = click.edit(
-                text="h3. Input",
+                text="{panel:borderColor=green}\nh3. Input\n---\n{panel}",
                 require_save=True
             ).strip()
-        if "assignee" not in kwargs or kwargs.get("assignee") is None:
-            kwargs["assignee"] = click.prompt("-A,--assignee: Enter issue assignee", type=str)
-        if "acceptance_criteria" not in kwargs or kwargs.get("acceptance_criteria") is None:
-            kwargs["acceptance_criteria"] = click.prompt("-AC,--acceptance-criteria: Enter acceptance criteria (one per line)", type=str)
-        if "estimate" not in kwargs or kwargs.get("estimate") is None:
-            kwargs["estimate"] = click.prompt("-E,--estimate: Enter remaining estimate in hours", type=str)
-        if "story_points" not in kwargs or kwargs.get("story_points") is None:
-            kwargs["story_points"] = click.prompt("-SP,--story-points: Enter story points", type=float)
-        if "update" in kwargs and kwargs.get("update") is None:
-            kwargs["update"] = click.prompt("-U,--update: Enter issue key to update", type=str)
+        if not kwargs.get("assignee"):
+            kwargs["assignee"] = click.prompt("--assignee, -A: Enter issue assignee", type=str)
+        if not kwargs.get("acceptance_criteria"):
+            kwargs["acceptance_criteria"] = click.prompt("--acceptance-criteria, -AC: Enter acceptance criteria (one per line)", type=str)
+        if not kwargs.get("estimate"):
+            kwargs["estimate"] = click.prompt("--estimate, -E: Enter remaining estimate in hours", type=str)
+        if not kwargs.get("story_points"):
+            kwargs["story_points"] = click.prompt("--story-points, -SP: Enter story points", type=float)
 
         issue_fields["project"] = {"key": kwargs.get("project")}
         issue_fields["summary"] = kwargs.get("summary")
@@ -57,11 +63,9 @@ def create_issue( **kwargs):
         issue_fields["issuetype"] = {"name": kwargs.get("issuetype")}
         issue_fields["timetracking"] = {"originalEstimate": kwargs.get("estimate")}
         issue_fields["customfield_10002"] = kwargs.get("story_points")
-        if "fix_version" in kwargs:
+        if kwargs.get("fix_version"):
             issue_fields["fixVersions"] = [{"name": kwargs.get("fix_version")}]
 
-        if "update" in kwargs and kwargs.get("update") is not None:
-            issue_fields["issuekey"] =  kwargs.get("update")
         
         if kwargs.get("priority"):
             if kwargs.get("priority") == "S":
@@ -76,19 +80,24 @@ def create_issue( **kwargs):
                 issue_fields["priority"] = {"name": "Unprioritized"}
         
         if kwargs.get("debug"):
-            click.echo(f"Debug mode enabled. Issue fields: ")
-            click.echo(click.style(f"{issue_fields}", fg="yellow"))
+            table_data = [[key, value] for key, value in kwargs.items()]
+            click.echo(click.style("\n[DEBUG] Updated issue fields:", fg="yellow"))
+            click.echo(tabulate(table_data, headers=["Key", "Value"], tablefmt="simple"))
+            click.echo()  # Add a blank line for readability
         
 
         # Create the issue
         new_issue = jira.issue_create_or_update(fields=issue_fields)
 
-        if "update" in kwargs and kwargs.get("update") is not None:
+        if kwargs.get("debug"):
+            click.echo(click.style(f"[DEBUG] New issue: {new_issue}", fg="yellow"))
+
+        if kwargs.get("update"):
             issue_key = kwargs.get("update")
         else:
-            issue_key = new_issue.issue_key
+            issue_key = new_issue.get("key")
 
-        if "links_jira" in kwargs and kwargs.get("links_jira") is not None:
+        if kwargs.get("links_jira"):
             outward_issue = kwargs.get("links_jira")
             inward_issue = issue_key
             click.echo(f"Creating issue link: {outward_issue} to {inward_issue}")
