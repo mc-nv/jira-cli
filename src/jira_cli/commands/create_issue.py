@@ -20,7 +20,6 @@ date_formatted = current_date.strftime("%y.%m")
 @click.option("--estimate", "-E", help="Remaining estimate in hours (default: 2h)", default="2h")
 @click.option("--fix-version", "-FV", help="Fix version(s) (comma-separated)")
 @click.option("--story-points", "-SP", help="Story points (default: 1)", default=1.0)
-@click.option("--update", "-U", help="Update existing issue")
 @click.option("--add-to-current-sprint", "-ATS", help="Add to current sprint (default: current sprint)",is_flag=True, default=False)
 
 def create_issue( **kwargs):
@@ -98,17 +97,14 @@ def create_issue( **kwargs):
             click.echo(tabulate(table_data, headers=["Key", "Value"], tablefmt="simple"))
             click.echo()  # Add a blank line for readability
         
-
         # Create the issue
-        new_issue = jira.issue_create_or_update(fields=issue_fields)
+        new_issue = jira.issue_create_or_update(issue_fields)
+        issue_key = new_issue.get("key")
 
         if kwargs.get("debug"):
             click.echo(click.style(f"[DEBUG] New issue: {new_issue}", fg="yellow"))
 
-        if kwargs.get("update"):
-            issue_key = kwargs.get("update")
-        else:
-            issue_key = new_issue.get("key")
+    
 
         if kwargs.get("links_jira"):
             outward_issue = kwargs.get("links_jira")
