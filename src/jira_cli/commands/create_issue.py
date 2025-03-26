@@ -59,8 +59,7 @@ def create_issue( **kwargs):
         issue_fields["customfield_10002"] = kwargs.get("story_points")
         if "fix_version" in kwargs:
             issue_fields["fixVersions"] = [{"name": kwargs.get("fix_version")}]
-        if "links_jira" in kwargs and kwargs.get("links_jira") is not None:
-            issue_fields["issuelinks"] = [{"outwardIssue": {"key": kwargs.get("links-jira")}}]
+
         if "update" in kwargs and kwargs.get("update") is not None:
             issue_fields["issuekey"] =  kwargs.get("update")
         
@@ -79,6 +78,8 @@ def create_issue( **kwargs):
         if kwargs.get("debug"):
             click.echo(f"Debug mode enabled. Issue fields: ")
             click.echo(click.style(f"{issue_fields}", fg="yellow"))
+        
+
         # Create the issue
         new_issue = jira.issue_create_or_update(fields=issue_fields)
 
@@ -86,6 +87,18 @@ def create_issue( **kwargs):
             issue_key = kwargs.get("update")
         else:
             issue_key = new_issue.issue_key
+
+        if "links_jira" in kwargs and kwargs.get("links_jira") is not None:
+            outward_issue = kwargs.get("links_jira")
+            inward_issue = issue_key
+            click.echo(f"Creating issue link: {outward_issue} to {inward_issue}")
+            link_data = {
+                "type": {"name": "Relates"},
+                "inwardIssue": {"key": outward_issue},
+                "outwardIssue": {"key": issue_key}
+            }
+            jira.create_issue_link(link_data)
+
         click.echo(f"Created issue: {issue_key}")
         click.echo(click.style(f"Created URL: {jira.url}/browse/{issue_key}", fg="blue"))
 
