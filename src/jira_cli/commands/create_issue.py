@@ -43,7 +43,7 @@ def create_issue( **kwargs):
             kwargs["summary"] = click.prompt("--summary, -S: Enter issue summary", type=str)
         if not kwargs.get("description"):
             kwargs["description"] = click.edit(
-                text="{panel:borderColor=green}\nh3. Input\n---\n{panel}",
+                text="{panel:borderColor=green}\nh3. Input\n----\n{panel}",
                 require_save=True
             ).strip()
         if not kwargs.get("assignee"):
@@ -59,10 +59,10 @@ def create_issue( **kwargs):
         issue_fields["summary"] = kwargs.get("summary")
         issue_fields["description"] = kwargs.get("description").replace("\\n", "\n").replace("\\t", "\t")
         issue_fields["assignee"] = {"name": kwargs.get("assignee")}
-        # issue_fields["customfield_12714"] = kwargs.get("acceptance_criteria")
+        issue_fields["customfield_12714"] = kwargs.get("acceptance_criteria")
         issue_fields["issuetype"] = {"name": kwargs.get("issuetype")}
         issue_fields["timetracking"] = {"originalEstimate": kwargs.get("estimate")}
-        # issue_fields["customfield_10002"] = kwargs.get("story_points")
+        issue_fields["customfield_10002"] = kwargs.get("story_points")
         if kwargs.get("fix_version"):
             issue_fields["fixVersions"] = [{"name": kwargs.get("fix_version")}]
         if kwargs.get("add_to_current_sprint"):
