@@ -55,7 +55,7 @@ def create_issue( **kwargs):
             kwargs["estimate"] = click.prompt("--estimate, -E: Enter remaining estimate in hours", type=str)
         if not kwargs.get("story_points"):
             kwargs["story_points"] = click.prompt("--story-points, -SP: Enter story points", type=float)
-        if kwargs.get("issue_type") == "Epic" and not kwargs.get("epic_name"):
+        if kwargs.get("issuetype") == "Epic" and not kwargs.get("epic_name"):
             kwargs["epic_name"] = click.prompt("--epic-name, -EN: Enter epic name", type=str)
             issue_fields["customfield_10006"] = kwargs.get("epic_name")
 
