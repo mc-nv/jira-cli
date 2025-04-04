@@ -22,8 +22,9 @@ date_formatted = current_date.strftime("%y.%m")
 @click.option("--estimate", "-E", help="Remaining estimate in hours (default: 2h)", default="2h")
 @click.option("--fix-version", "-FV", help="Fix version(s) (comma-separated)")
 @click.option("--story-points", "-SP", help="Story points (default: 1)", default=1.0)
-@click.option("--add-to-current-sprint", "-ATS", help="Add to current sprint (default: current sprint)",is_flag=True, default=False)
-
+@click.option("--add-to-current-sprint", "-ATS", help="Add to current sprint (default: current sprint)",is_flag=True, 
+              default=False)
+@click.option("--labels", help="Labels (comma-separated)")
 def create_issue( **kwargs):
     """Create a new issue in the specified project."""
     jira = get_jira_client()
@@ -69,6 +70,8 @@ def create_issue( **kwargs):
         issue_fields["issuetype"] = {"name": kwargs.get("issuetype")}
         issue_fields["timetracking"] = {"originalEstimate": kwargs.get("estimate")}
         issue_fields["customfield_10002"] = kwargs.get("story_points")
+        if kwargs.get("labels"):
+            issue_fields["labels"] = kwargs.get("labels").split(",")
         if kwargs.get("epic_link"):
             issue_fields["customfield_10005"] = kwargs.get("epic_link")
         if kwargs.get("fix_version"):
