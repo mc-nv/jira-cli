@@ -11,7 +11,7 @@ date_formatted = current_date.strftime("%y.%m")
 @click.option("--project", "-P", help="Jira project key", default=lambda: os.getenv("JIRA_PROJECT"))
 @click.option("--summary", "-S", help="Issue summary" )
 @click.option("--description", "-D", help="Issue description")
-@click.option("--assignee", "-A", help="Issue assignee", default=lambda: os.getenv("JIRA_USER"))
+@click.option("--assignee", "-A", help="Issue assignee")
 @click.option("--issuetype", "-T", help="Issue type", default="Task")
 @click.option("--acceptance-criteria", "-AC", help="Acceptance criteria (one per line)")
 @click.option("--links-jira", "-L", help="Issue key to link to (e.g., PROJ-123)")
@@ -43,7 +43,7 @@ def create_issue( **kwargs):
             kwargs["summary"] = click.prompt("--summary, -S: Enter issue summary", type=str)
         if not kwargs.get("description"):
             kwargs["description"] = click.edit(
-                text="{panel:borderColor=green}\nh3. Input\n----\n{panel}",
+                text="{panel:borderColor=green}\nh3. Input/Observations\n----\nh3. Problem\n----\nh3. Hypothesis/Fix/Proposed Solution\n----\n{panel}",
                 require_save=True
             ).strip()
         if not kwargs.get("assignee"):
@@ -58,7 +58,8 @@ def create_issue( **kwargs):
         issue_fields["project"] = {"key": kwargs.get("project")}
         issue_fields["summary"] = kwargs.get("summary")
         issue_fields["description"] = kwargs.get("description").replace("\\n", "\n").replace("\\t", "\t")
-        issue_fields["assignee"] = {"name": kwargs.get("assignee")}
+        if kwargs.get("assignee"):
+            issue_fields["assignee"] = {"name": kwargs.get("assignee")}
         issue_fields["customfield_12714"] = kwargs.get("acceptance_criteria")
         issue_fields["issuetype"] = {"name": kwargs.get("issuetype")}
         issue_fields["timetracking"] = {"originalEstimate": kwargs.get("estimate")}
