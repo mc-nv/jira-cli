@@ -13,6 +13,7 @@ date_formatted = current_date.strftime("%y.%m")
 @click.option("--description", "-D", help="Issue description")
 @click.option("--assignee", "-A", help="Issue assignee")
 @click.option("--issuetype", "-T", help="Issue type", default="Task")
+@click.option("--epic-name", "-EN", help="Epic name")
 @click.option("--acceptance-criteria", "-AC", help="Acceptance criteria (one per line)")
 @click.option("--links-jira", "-L", help="Issue key to link to (e.g., PROJ-123)")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode")
@@ -54,6 +55,9 @@ def create_issue( **kwargs):
             kwargs["estimate"] = click.prompt("--estimate, -E: Enter remaining estimate in hours", type=str)
         if not kwargs.get("story_points"):
             kwargs["story_points"] = click.prompt("--story-points, -SP: Enter story points", type=float)
+        if kwargs.get("issue_type") == "Epic" and not kwargs.get("epic_name"):
+            kwargs["epic_name"] = click.prompt("--epic-name, -EN: Enter epic name", type=str)
+            issue_fields["customfield_10006"] = kwargs.get("epic_name")
 
         issue_fields["project"] = {"key": kwargs.get("project")}
         issue_fields["summary"] = kwargs.get("summary")
@@ -97,7 +101,7 @@ def create_issue( **kwargs):
             click.echo(click.style("\n[DEBUG] Updated issue fields:", fg="yellow"))
             click.echo(tabulate(table_data, headers=["Key", "Value"], tablefmt="simple"))
             click.echo()  # Add a blank line for readability
-        
+
         # Create the issue
         new_issue = jira.issue_create_or_update(issue_fields)
         issue_key = new_issue.get("key")
