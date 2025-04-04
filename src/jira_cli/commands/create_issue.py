@@ -43,11 +43,11 @@ def create_issue( **kwargs):
             kwargs["summary"] = click.prompt("--summary, -S: Enter issue summary", type=str)
         if not kwargs.get("description"):
             kwargs["description"] = click.edit(
-                text="{panel:borderColor=green}\nh3. Input/Observations\n----\nh3. Problem\n----\nh3. Hypothesis/Fix/Proposed Solution\n----\n{panel}",
+                text="{panel:borderColor=green}\nh3. Input/Observations\n----\n\nh3. Problem\n----\n\nh3. Hypothesis/Fix/Proposed Solution\n----\n\n{panel}",
                 require_save=True
             ).strip()
-        if not kwargs.get("assignee"):
-            kwargs["assignee"] = click.prompt("--assignee, -A: Enter issue assignee", type=str)
+        # if not kwargs.get("assignee"):
+        #     kwargs["assignee"] = click.prompt("--assignee, -A: Enter issue assignee", type=str)
         if not kwargs.get("acceptance_criteria"):
             kwargs["acceptance_criteria"] = click.prompt("--acceptance-criteria, -AC: Enter acceptance criteria (one per line)", type=str)
         if not kwargs.get("estimate"):
