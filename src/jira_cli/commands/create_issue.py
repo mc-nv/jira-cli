@@ -14,6 +14,7 @@ date_formatted = current_date.strftime("%y.%m")
 @click.option("--assignee", "-A", help="Issue assignee")
 @click.option("--issuetype", "-T", help="Issue type", default="Task")
 @click.option("--epic-name", "-EN", help="Epic name")
+@click.option("--epic-link", "-EL", help="Epic link")
 @click.option("--acceptance-criteria", "-AC", help="Acceptance criteria (one per line)")
 @click.option("--links-jira", "-L", help="Issue key to link to (e.g., PROJ-123)")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode")
@@ -68,6 +69,8 @@ def create_issue( **kwargs):
         issue_fields["issuetype"] = {"name": kwargs.get("issuetype")}
         issue_fields["timetracking"] = {"originalEstimate": kwargs.get("estimate")}
         issue_fields["customfield_10002"] = kwargs.get("story_points")
+        if kwargs.get("epic_link"):
+            issue_fields["customfield_10005"] = kwargs.get("epic_link")
         if kwargs.get("fix_version"):
             issue_fields["fixVersions"] = [{"name": kwargs.get("fix_version")}]
         if kwargs.get("add_to_current_sprint"):
