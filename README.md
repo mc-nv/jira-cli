@@ -11,6 +11,10 @@ A command-line interface for Jira using the atlassian-python-api library.
    # or
    .venv\Scripts\activate  # On Windows
    ```
+   alternatively, you can use pip+git to install the package in development mode:
+   ```bash
+   pip3 install --user git+https://github.com/mc-nv/jira-cli.git@main
+   ```
 
 2. Install the package in development mode:
    ```bash
